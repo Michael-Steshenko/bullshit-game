@@ -1,0 +1,40 @@
+.player-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.player-avatar {
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+  border-radius: 50%;
+}
+
+.player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.player-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.host-badge {
+  margin-left: 0.3rem;
+  font-size: 0.8rem;
+}
+
+.player-score {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}

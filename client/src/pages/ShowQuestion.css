@@ -1,0 +1,43 @@
+.show-question {
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.question-number {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.question-text {
+  font-size: 1.3rem;
+  line-height: 1.6;
+}
+
+.answer-input {
+  width: 100%;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.mt-1 {
+  margin-top: 0.5rem;
+}
+
+.submitted-msg {
+  padding: 1.5rem;
+  background: rgba(46, 204, 113, 0.1);
+  border-radius: 12px;
+}
+
+.submitted-count {
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.error-text {
+  margin-top: 0.75rem;
+  color: var(--danger);
+  font-size: 0.9rem;
+}
