@@ -106,6 +106,12 @@ func (g *Game) AddPlayer(uuid, nickname string) string {
 	}
 
 	g.addPlayerLocked(uuid, nickname)
+
+	// First player becomes the host
+	if g.HostID == "" {
+		g.HostID = uuid
+	}
+
 	return ""
 }
 
