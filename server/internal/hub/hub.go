@@ -132,11 +132,13 @@ func (h *Hub) handleJoin(client *Client, msg *IncomingMessage) {
 	// Set as host if first player
 	if room.Game.HostID == "" {
 		room.Game.HostID = playerUUID
+		log.Printf("join: set host to %s for pin=%s", playerUUID, pin)
 	}
 
 	client.UUID = playerUUID
 	client.PIN = pin
 	room.AddClient(playerUUID, client)
+	log.Printf("join: player %s (%s) joined pin=%s, total=%d", playerUUID, nickname, pin, room.Game.PlayerCount())
 
 	player := room.Game.GetPlayer(playerUUID)
 
@@ -202,10 +204,13 @@ func (h *Hub) handleStartGame(client *Client, msg *IncomingMessage) {
 	pin := strings.ToUpper(msg.PIN)
 	room := h.GetRoom(pin)
 	if room == nil {
+		log.Printf("start_game: room not found for pin=%s", pin)
 		return
 	}
 
+	log.Printf("start_game: pin=%s client.UUID=%s hostID=%s state=%v", pin, client.UUID, room.Game.HostID, room.Game.State)
 	if !room.Game.StartGame(client.UUID) {
+		log.Printf("start_game: StartGame returned false")
 		return
 	}
 
