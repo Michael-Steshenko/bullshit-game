@@ -1,0 +1,25 @@
+.pin-input {
+  font-size: 2rem;
+  text-align: center;
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.pin-display {
+  text-align: center;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.error-text {
+  margin-top: 1rem;
+  color: var(--danger);
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.full-width {
+  width: 100%;
+}

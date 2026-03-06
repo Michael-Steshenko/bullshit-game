@@ -1,0 +1,41 @@
+.scoreboard {
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.score-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.score-row {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--bg-card);
+  border-radius: 12px;
+  gap: 1rem;
+}
+
+.score-row.me {
+  border: 2px solid var(--accent);
+}
+
+.score-rank {
+  font-weight: 700;
+  color: var(--text-secondary);
+  min-width: 2rem;
+}
+
+.score-name {
+  flex: 1;
+  text-align: left;
+  font-weight: 600;
+}
+
+.score-value {
+  font-weight: 700;
+  color: var(--accent);
+}

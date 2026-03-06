@@ -1,0 +1,43 @@
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.form-group select {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.question-options {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.q-btn {
+  flex: 1;
+  padding: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.q-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.full-width {
+  width: 100%;
+}

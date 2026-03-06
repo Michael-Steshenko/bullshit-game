@@ -1,0 +1,3 @@
+bullshit.steshenko.net {
+    reverse_proxy server:8080
+}
