@@ -31,7 +31,9 @@ export function JoinGame() {
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!nickname.trim()) return;
-    send('join', { pin: pin.toUpperCase(), nickname: nickname.trim() });
+    const upperPin = pin.toUpperCase();
+    dispatch({ type: 'SET_PIN', pin: upperPin });
+    send('join', { pin: upperPin, nickname: nickname.trim() });
   };
 
   return (

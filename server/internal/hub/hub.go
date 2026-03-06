@@ -129,16 +129,10 @@ func (h *Hub) handleJoin(client *Client, msg *IncomingMessage) {
 		return
 	}
 
-	// Set as host if first player
-	if room.Game.HostID == "" {
-		room.Game.HostID = playerUUID
-		log.Printf("join: set host to %s for pin=%s", playerUUID, pin)
-	}
-
 	client.UUID = playerUUID
 	client.PIN = pin
 	room.AddClient(playerUUID, client)
-	log.Printf("join: player %s (%s) joined pin=%s, total=%d", playerUUID, nickname, pin, room.Game.PlayerCount())
+	log.Printf("join: player %s (%s) joined pin=%s, total=%d, host=%s", playerUUID, nickname, pin, room.Game.PlayerCount(), room.Game.HostID)
 
 	player := room.Game.GetPlayer(playerUUID)
 
