@@ -1,4 +1,4 @@
-import { useGame } from '../context/GameContext';
+import { useGame } from '../hooks/useGame';
 import { ProgressBar } from '../components/ProgressBar';
 import './ScoreBoard.css';
 

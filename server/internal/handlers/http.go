@@ -11,7 +11,7 @@ import (
 	"github.com/bullshit-wtf/server/internal/hub"
 )
 
-func NewRouter(h *hub.Hub, db *sql.DB) http.Handler {
+func NewRouter(h *hub.Hub, _ *sql.DB) http.Handler {
 	mux := http.NewServeMux()
 
 	// API routes
@@ -26,9 +26,9 @@ func NewRouter(h *hub.Hub, db *sql.DB) http.Handler {
 	if _, err := os.Stat(staticDir); err == nil {
 		mux.Handle("/", spaHandler(staticDir))
 	} else {
-		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
 			w.Header().Set("Content-Type", "text/plain")
-			w.Write([]byte("Bullshit.wtf API Server"))
+			_, _ = w.Write([]byte("Bullshit.wtf API Server"))
 		})
 	}
 
@@ -36,9 +36,9 @@ func NewRouter(h *hub.Hub, db *sql.DB) http.Handler {
 	return corsMiddleware(mux)
 }
 
-func healthHandler(w http.ResponseWriter, r *http.Request) {
+func healthHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
 type CreateGameRequest struct {
@@ -77,7 +77,7 @@ func createGameHandler(h *hub.Hub) http.HandlerFunc {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(CreateGameResponse{PIN: pin})
+		_ = json.NewEncoder(w).Encode(CreateGameResponse{PIN: pin})
 	}
 }
 

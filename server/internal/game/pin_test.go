@@ -6,15 +6,15 @@ import (
 
 func TestIntToPin(t *testing.T) {
 	tests := []struct {
-		input    int64
 		expected string
+		input    int64
 	}{
-		{0, "AAAA"},
-		{1, "AAAB"},
-		{25, "AAAZ"},
-		{26, "AABA"},
-		{675, "AAZZ"},
-		{676, "ABAA"},
+		{"AAAA", 0},
+		{"AAAB", 1},
+		{"AAAZ", 25},
+		{"AABA", 26},
+		{"AAZZ", 675},
+		{"ABAA", 676},
 	}
 	for _, tt := range tests {
 		got := intToPin(tt.input)

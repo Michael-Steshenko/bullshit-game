@@ -13,13 +13,12 @@ import (
 
 // Hub manages all game rooms and WebSocket connections.
 type Hub struct {
-	mu            sync.RWMutex
-	rooms         map[string]*Room // keyed by PIN
 	questionStore game.QuestionStore
+	rooms         map[string]*Room
 	pinGen        *game.PinGenerator
-
-	register   chan *Client
-	unregister chan *Client
+	register      chan *Client
+	unregister    chan *Client
+	mu            sync.RWMutex
 }
 
 func NewHub(qs game.QuestionStore, pg *game.PinGenerator) *Hub {
@@ -267,7 +266,7 @@ func (h *Hub) handleTick(client *Client, msg *IncomingMessage) {
 	h.broadcastStateAndData(room)
 }
 
-func (h *Hub) handleRematch(client *Client, msg *IncomingMessage) {
+func (h *Hub) handleRematch(client *Client, _ *IncomingMessage) {
 	room := h.GetRoom(client.PIN)
 	if room == nil {
 		return
@@ -304,7 +303,7 @@ func (h *Hub) broadcastStateAndData(room *Room) {
 
 	// Broadcast state-specific data
 	snap := room.Game.GetStateSnapshot()
-	switch game.GameState(snap.State) {
+	switch game.State(snap.State) {
 	case game.ShowQuestion:
 		q := room.Game.GetCurrentQuestion()
 		if q != nil {
@@ -339,7 +338,7 @@ func (h *Hub) broadcastStateAndData(room *Room) {
 
 func (h *Hub) sendCurrentStateData(client *Client, room *Room) {
 	snap := room.Game.GetStateSnapshot()
-	switch game.GameState(snap.State) {
+	switch game.State(snap.State) {
 	case game.ShowQuestion:
 		q := room.Game.GetCurrentQuestion()
 		if q != nil {

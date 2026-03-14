@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq" // postgres driver
 )
 
 func Connect(databaseURL string) (*sql.DB, error) {
@@ -74,12 +74,12 @@ func RunMigrations(db *sql.DB) error {
 		}
 
 		if _, err := tx.Exec(string(content)); err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			return fmt.Errorf("execute migration %s: %w", f, err)
 		}
 
 		if _, err := tx.Exec("INSERT INTO schema_migrations (version) VALUES ($1)", version); err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			return fmt.Errorf("record migration %s: %w", f, err)
 		}
 

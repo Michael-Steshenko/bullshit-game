@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { useGame } from '../context/GameContext';
+import { useGame } from '../hooks/useGame';
 import { ProgressBar } from '../components/ProgressBar';
 import './ShowAnswers.css';
 

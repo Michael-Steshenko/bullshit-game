@@ -8,9 +8,9 @@ import (
 
 // Room manages all WebSocket clients for a single game.
 type Room struct {
-	mu      sync.RWMutex
 	Game    *game.Game
-	clients map[string]*Client // keyed by player UUID
+	clients map[string]*Client
+	mu      sync.RWMutex
 }
 
 func NewRoom(g *game.Game) *Room {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useGame } from '../context/GameContext';
+import { useGame } from '../hooks/useGame';
 import { GameState } from '../lib/types';
 import './JoinGame.css';
 

@@ -1,0 +1,13 @@
+{
+  "name": "bullshit-wtf-root",
+  "private": true,
+  "scripts": {
+    "dev": "docker compose up -d db && npx concurrently -n \"server,client\" -c \"blue,green\" \"cd server && go run cmd/server/main.go\" \"cd client && npm run dev\"",
+    "lint": "echo '--- Linting Client ---' && (cd client && npm run lint) && echo '--- Linting Server ---' && (cd server && golangci-lint run --fix)",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "husky": "^9.1.7"
+  }
+}

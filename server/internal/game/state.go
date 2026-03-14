@@ -1,19 +1,19 @@
 package game
 
-// GameState represents the current phase of a game.
-type GameState int
+// State represents the current phase of a game.
+type State int
 
 const (
-	GameStaging     GameState = 0 // Lobby
-	RoundIntro      GameState = 1
-	ShowQuestion    GameState = 2
-	ShowAnswers     GameState = 3
-	RevealTheTruth  GameState = 4
-	ScoreBoard      GameState = 5
-	ScoreBoardFinal GameState = 6
+	GameStaging     State = 0 // Lobby
+	RoundIntro      State = 1
+	ShowQuestion    State = 2
+	ShowAnswers     State = 3
+	RevealTheTruth  State = 4
+	ScoreBoard      State = 5
+	ScoreBoardFinal State = 6
 )
 
-func (s GameState) String() string {
+func (s State) String() string {
 	switch s {
 	case GameStaging:
 		return "GameStaging"
@@ -36,7 +36,7 @@ func (s GameState) String() string {
 
 // Duration returns the timer duration in milliseconds for timed states.
 // Returns 0 for states with no timer.
-func (s GameState) Duration() int {
+func (s State) Duration() int {
 	switch s {
 	case RoundIntro:
 		return 5000
