@@ -1,0 +1,35 @@
+.staging {
+  text-align: center;
+  width: 100%;
+  max-width: 500px;
+}
+
+.staging-pin {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.pin-highlight {
+  font-size: 2.5rem;
+  color: var(--accent);
+  letter-spacing: 6px;
+}
+
+.player-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.player-count {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.waiting-text {
+  color: var(--text-secondary);
+  font-style: italic;
+}

@@ -1,0 +1,27 @@
+.landing {
+  text-align: center;
+}
+
+.landing-title {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.landing-subtitle {
+  color: var(--text-secondary);
+  margin-bottom: 3rem;
+  font-size: 1.1rem;
+}
+
+.landing-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 280px;
+  margin: 0 auto;
+}
+
+.landing-btn {
+  padding: 1rem;
+  font-size: 1.1rem;
+}

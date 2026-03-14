@@ -1,0 +1,86 @@
+.reveal {
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+.reveal-progress {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.reveal-card {
+  padding: 2rem;
+  border-radius: 16px;
+  width: 100%;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.reveal-card.real {
+  border-color: var(--success);
+  background: rgba(46, 204, 113, 0.1);
+}
+
+.reveal-card.house {
+  border-color: var(--warning);
+  background: rgba(243, 156, 18, 0.1);
+}
+
+.reveal-card.player {
+  border-color: var(--bg-card);
+  background: var(--bg-card);
+}
+
+.reveal-text {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.reveal-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.reveal-selectors,
+.reveal-creator {
+  margin-top: 1rem;
+}
+
+.selector-names,
+.creator-names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.selector-name,
+.creator-name {
+  padding: 0.3rem 0.8rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  font-size: 0.9rem;
+}
+
+.reveal-points {
+  margin-top: 1rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.reveal-points.positive {
+  color: var(--success);
+}
+
+.reveal-points.negative {
+  color: var(--danger);
+}
