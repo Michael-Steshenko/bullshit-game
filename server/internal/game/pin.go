@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"sync/atomic"
 )
 
@@ -36,5 +35,5 @@ func (p *PinGenerator) SetCounter(n int64) {
 
 // PinToDisplay formats a PIN for display.
 func PinToDisplay(pin string) string {
-	return fmt.Sprintf("%s", pin)
+	return pin
 }

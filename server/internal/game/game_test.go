@@ -177,7 +177,7 @@ func TestComputeRoundIndex(t *testing.T) {
 	}{
 		{0, 0}, {1, 0}, {2, 0}, // Round 0: 0-2
 		{3, 1}, {4, 1}, {5, 1}, // Round 1: 3-5
-		{6, 2},                  // Round 2: 6
+		{6, 2}, // Round 2: 6
 	}
 
 	for _, tt := range tests {

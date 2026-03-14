@@ -8,12 +8,12 @@ import (
 
 // Question represents a trivia question.
 type Question struct {
-	ID          int      `json:"id"`
 	Lang        string   `json:"lang"`
 	Text        string   `json:"questionText"`
 	RealAnswer  string   `json:"realAnswer"`
-	FakeAnswers []string `json:"fakeAnswers"`
 	Citation    string   `json:"citation"`
+	FakeAnswers []string `json:"fakeAnswers"`
+	ID          int      `json:"id"`
 }
 
 // QuestionStore is an interface for fetching questions.

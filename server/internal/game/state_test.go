@@ -4,9 +4,9 @@ import (
 	"testing"
 )
 
-func TestGameStateDuration(t *testing.T) {
+func TestStateDuration(t *testing.T) {
 	tests := []struct {
-		state    GameState
+		state    State
 		expected int
 	}{
 		{GameStaging, 0},

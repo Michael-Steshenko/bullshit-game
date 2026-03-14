@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	MaxPlayers    = 8
-	MaxNickLen    = 9
-	MaxAnswerLen  = 40
+	MaxPlayers   = 8
+	MaxNickLen   = 9
+	MaxAnswerLen = 40
 )
 
 // Player represents a player in a game.
@@ -36,38 +36,33 @@ type Selection struct {
 // RevealAnswer represents one answer in the reveal sequence.
 type RevealAnswer struct {
 	Text       string   `json:"text"`
-	Creators   []string `json:"creators"`   // UUIDs of players who wrote this (or "house" / "truth")
-	Selectors  []string `json:"selectors"`  // UUIDs of players who selected this
+	Creators   []string `json:"creators"`  // UUIDs of players who wrote this (or "house" / "truth")
+	Selectors  []string `json:"selectors"` // UUIDs of players who selected this
 	RealAnswer bool     `json:"realAnswer"`
 	HouseLie   bool     `json:"houseLie"`
-	Points     int      `json:"points"`     // Points earned/lost per selector
+	Points     int      `json:"points"` // Points earned/lost per selector
 }
 
 // Game holds the complete state of a single game.
 type Game struct {
-	mu sync.RWMutex
-
-	PIN            string
-	State          GameState
-	StateTimestamp time.Time
-	StateVersion   int
-	RoundIndex     int
-	QuestionIndex  int
-	TotalQuestions int
-	Lang           string
+	StateTimestamp  time.Time
 	CurrentQuestion *Question
-
-	Players    map[string]*Player // keyed by UUID
-	PlayerOrder []string          // UUIDs in join order
-	HostID     string
-
-	Answers    map[string]*Answer    // keyed by player UUID
-	Selections map[string]*Selection // keyed by player UUID
-
-	RevealAnswers []RevealAnswer
-
-	QuestionIDs []int
-	Questions   []Question // pre-loaded questions for this game
+	Selections      map[string]*Selection
+	Answers         map[string]*Answer
+	Players         map[string]*Player
+	HostID          string
+	Lang            string
+	PIN             string
+	PlayerOrder     []string
+	RevealAnswers   []RevealAnswer
+	QuestionIDs     []int
+	Questions       []Question
+	QuestionIndex   int
+	TotalQuestions  int
+	RoundIndex      int
+	StateVersion    int
+	State           State
+	mu              sync.RWMutex
 }
 
 // NewGame creates a new game in staging state.
@@ -289,7 +284,7 @@ func (g *Game) advanceToNextState() bool {
 	}
 }
 
-func (g *Game) advanceStateLocked(newState GameState) {
+func (g *Game) advanceStateLocked(newState State) {
 	g.State = newState
 	g.StateTimestamp = time.Now()
 	g.StateVersion++
@@ -605,10 +600,10 @@ func (g *Game) GetCurrentQuestion() *Question {
 }
 
 // GetStateSnapshot returns a snapshot of the current game state.
-func (g *Game) GetStateSnapshot() GameStateSnapshot {
+func (g *Game) GetStateSnapshot() StateSnapshot {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
-	return GameStateSnapshot{
+	return StateSnapshot{
 		State:          g.State,
 		StateTimestamp: g.StateTimestamp,
 		StateVersion:   g.StateVersion,
@@ -618,10 +613,10 @@ func (g *Game) GetStateSnapshot() GameStateSnapshot {
 	}
 }
 
-// GameStateSnapshot is a read-only snapshot of game state for broadcasting.
-type GameStateSnapshot struct {
-	State          GameState `json:"state"`
+// StateSnapshot is a read-only snapshot of game state for broadcasting.
+type StateSnapshot struct {
 	StateTimestamp time.Time `json:"stateTimestamp"`
+	State          State     `json:"state"`
 	StateVersion   int       `json:"stateVersion"`
 	RoundIndex     int       `json:"roundIndex"`
 	QuestionIndex  int       `json:"questionIndex"`

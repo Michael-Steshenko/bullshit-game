@@ -1,0 +1,19 @@
+echo "Running pre-commit hooks..."
+
+# Frontend Lint (TypeScript)
+echo "Linting client (TS)..."
+cd client && npm run lint || exit 1
+cd ..
+
+# Backend Lint (Go)
+echo "Linting server (Go)..."
+if ! command -v golangci-lint >/dev/null 2>&1; then
+    echo "Error: golangci-lint is not installed."
+    echo "Please install it to proceed: brew install golangci-lint"
+    exit 1
+fi
+
+cd server && golangci-lint run ./... || exit 1
+cd ..
+
+echo "Pre-commit checks passed!"

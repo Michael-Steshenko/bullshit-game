@@ -43,8 +43,8 @@ type IncomingMessage struct {
 
 // OutgoingMessage is a generic outgoing WebSocket message.
 type OutgoingMessage struct {
-	Type string      `json:"type"`
 	Data interface{} `json:"data,omitempty"`
+	Type string      `json:"type"`
 }
 
 func NewOutgoing(msgType string, data interface{}) []byte {
@@ -61,13 +61,13 @@ type ErrorPayload struct {
 
 // State payloads
 type GameStatePayload struct {
-	State          int    `json:"state"`
-	StateTimestamp int64  `json:"stateTimestamp"`
-	StateVersion   int    `json:"stateVersion"`
-	RoundIndex     int    `json:"roundIndex"`
-	QuestionIndex  int    `json:"questionIndex"`
-	TotalQuestions int    `json:"totalQuestions"`
-	Duration       int    `json:"duration"`
+	State          int   `json:"state"`
+	StateTimestamp int64 `json:"stateTimestamp"`
+	StateVersion   int   `json:"stateVersion"`
+	RoundIndex     int   `json:"roundIndex"`
+	QuestionIndex  int   `json:"questionIndex"`
+	TotalQuestions int   `json:"totalQuestions"`
+	Duration       int   `json:"duration"`
 }
 
 type PlayerPayload struct {

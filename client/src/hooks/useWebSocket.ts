@@ -7,11 +7,19 @@ export function useWebSocket(onMessage: MessageHandler) {
   const [connected, setConnected] = useState(false);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const onMessageRef = useRef(onMessage);
-  onMessageRef.current = onMessage;
+
+  const connectRef = useRef<() => void>(undefined);
 
   const connect = useCallback(() => {
+    if (
+      wsRef.current?.readyState === WebSocket.CONNECTING ||
+      wsRef.current?.readyState === WebSocket.OPEN
+    )
+      return;
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = import.meta.env.VITE_WS_URL || `${protocol}//${window.location.host}/ws`;
+    const host = window.location.host;
+    const wsUrl = import.meta.env.VITE_WS_URL || `${protocol}//${host}/ws`;
 
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
@@ -22,7 +30,6 @@ export function useWebSocket(onMessage: MessageHandler) {
 
     ws.onmessage = (event) => {
       try {
-        // Handle multiple messages separated by newlines
         const messages = event.data.split('\n');
         for (const msgStr of messages) {
           if (!msgStr.trim()) continue;
@@ -38,13 +45,20 @@ export function useWebSocket(onMessage: MessageHandler) {
       setConnected(false);
       wsRef.current = null;
       // Reconnect after delay
-      reconnectTimer.current = setTimeout(connect, 2000);
+      reconnectTimer.current = setTimeout(() => {
+        connectRef.current?.();
+      }, 2000);
     };
 
     ws.onerror = () => {
       ws.close();
     };
   }, []);
+
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+    connectRef.current = connect;
+  });
 
   useEffect(() => {
     connect();

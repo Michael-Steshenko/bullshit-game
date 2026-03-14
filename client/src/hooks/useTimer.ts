@@ -1,15 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 
 export function useTimer(duration: number, startTime: number) {
-  const [remaining, setRemaining] = useState(duration);
+  const [remaining, setRemaining] = useState(() => {
+    const initialElapsed = Date.now() - startTime;
+    return Math.max(0, duration - initialElapsed);
+  });
   const rafRef = useRef<number>(0);
 
   useEffect(() => {
-    if (duration <= 0) {
-      setRemaining(0);
-      return;
-    }
-
     const update = () => {
       const elapsed = Date.now() - startTime;
       const left = Math.max(0, duration - elapsed);
@@ -19,7 +17,12 @@ export function useTimer(duration: number, startTime: number) {
       }
     };
 
-    rafRef.current = requestAnimationFrame(update);
+    if (duration > 0) {
+      rafRef.current = requestAnimationFrame(update);
+    } else {
+      rafRef.current = requestAnimationFrame(() => setRemaining(0));
+    }
+
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
