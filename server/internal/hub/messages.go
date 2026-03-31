@@ -121,12 +121,13 @@ type RevealPayload struct {
 }
 
 type RevealEntry struct {
-	Text       string   `json:"text"`
-	Selectors  []string `json:"selectors"`
-	Creators   []string `json:"creators"`
-	RealAnswer bool     `json:"realAnswer"`
-	HouseLie   bool     `json:"houseLie"`
-	Points     int      `json:"points"`
+	Text           string   `json:"text"`
+	Selectors      []string `json:"selectors"`
+	Creators       []string `json:"creators"`
+	RealAnswer     bool     `json:"realAnswer"`
+	HouseLie       bool     `json:"houseLie"`
+	SelectorPoints int      `json:"selectorPoints"`
+	CreatorPoints  int      `json:"creatorPoints"`
 }
 
 type ScoresPayload struct {

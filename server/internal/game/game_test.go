@@ -319,3 +319,118 @@ func TestRematch(t *testing.T) {
 		t.Errorf("PlayerCount = %d, want 2", g.PlayerCount())
 	}
 }
+
+func TestRevealOmitsUnselectedAnswers(t *testing.T) {
+	questions := makeTestQuestions(1)
+	g := NewGame("ABCD", "host", "Host", "en", 1, questions)
+	g.AddPlayer("p1", "Player1")
+	g.AddPlayer("p2", "Player2")
+
+	g.StartGame("host")
+	g.Tick(g.StateVersion) // -> ShowQuestion
+
+	sv := g.StateVersion
+	if err := g.SubmitAnswer("host", "host lie", sv); err != "" {
+		t.Fatalf("submit host: %s", err)
+	}
+	if err := g.SubmitAnswer("p1", "p1 lie", sv); err != "" {
+		t.Fatalf("submit p1: %s", err)
+	}
+	if err := g.SubmitAnswer("p2", "p2 lie", sv); err != "" {
+		t.Fatalf("submit p2: %s", err)
+	}
+
+	g.Tick(g.StateVersion) // -> ShowAnswers
+
+	sv = g.StateVersion
+	if err := g.SelectAnswer("host", "the truth", sv); err != "" {
+		t.Fatalf("select host: %s", err)
+	}
+	if err := g.SelectAnswer("p1", "host lie", sv); err != "" {
+		t.Fatalf("select p1: %s", err)
+	}
+	if err := g.SelectAnswer("p2", "the truth", sv); err != "" {
+		t.Fatalf("select p2: %s", err)
+	}
+
+	g.Tick(g.StateVersion) // -> RevealTheTruth
+
+	reveals := g.GetRevealAnswers()
+	if len(reveals) != 2 {
+		t.Fatalf("reveal count = %d, want 2", len(reveals))
+	}
+
+	var hasHostLie, hasTruth, hasP1Lie, hasP2Lie bool
+	for _, r := range reveals {
+		switch r.Text {
+		case "host lie":
+			hasHostLie = true
+		case "the truth":
+			hasTruth = true
+		case "p1 lie":
+			hasP1Lie = true
+		case "p2 lie":
+			hasP2Lie = true
+		}
+	}
+
+	if !hasHostLie || !hasTruth {
+		t.Fatalf("expected reveal to include host lie and truth, got %+v", reveals)
+	}
+	if hasP1Lie || hasP2Lie {
+		t.Fatalf("unexpected unselected answer in reveal: %+v", reveals)
+	}
+}
+
+func TestRevealIncludesCreatorPointsWhenBullshitting(t *testing.T) {
+	questions := []Question{{
+		ID:          1,
+		Lang:        "en",
+		Text:        "What is $blank$?",
+		RealAnswer:  "the truth",
+		FakeAnswers: []string{"house lie 1", "house lie 2"},
+		Citation:    "test",
+	}}
+	g := NewGame("ABCD", "host", "Host", "en", 1, questions)
+	g.AddPlayer("p1", "Player1")
+
+	g.StartGame("host")
+	g.Tick(g.StateVersion) // -> ShowQuestion
+
+	sv := g.StateVersion
+	if err := g.SubmitAnswer("host", "host lie", sv); err != "" {
+		t.Fatalf("submit host: %s", err)
+	}
+	// p1 doesn't submit -> house lie added
+
+	g.Tick(g.StateVersion) // -> ShowAnswers
+
+	sv = g.StateVersion
+	if err := g.SelectAnswer("host", "the truth", sv); err != "" {
+		t.Fatalf("select host: %s", err)
+	}
+	if err := g.SelectAnswer("p1", "host lie", sv); err != "" {
+		t.Fatalf("select p1: %s", err)
+	}
+
+	g.Tick(g.StateVersion) // -> RevealTheTruth
+
+	reveals := g.GetRevealAnswers()
+	var hostLie *RevealAnswer
+	for i := range reveals {
+		if reveals[i].Text == "host lie" {
+			hostLie = &reveals[i]
+			break
+		}
+	}
+	if hostLie == nil {
+		t.Fatalf("host lie not found in reveal: %+v", reveals)
+	}
+
+	if hostLie.CreatorPoints != 500 {
+		t.Fatalf("creator points = %d, want 500", hostLie.CreatorPoints)
+	}
+	if hostLie.SelectorPoints != 0 {
+		t.Fatalf("selector points = %d, want 0", hostLie.SelectorPoints)
+	}
+}

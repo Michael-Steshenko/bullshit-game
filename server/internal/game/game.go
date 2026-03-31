@@ -35,12 +35,13 @@ type Selection struct {
 
 // RevealAnswer represents one answer in the reveal sequence.
 type RevealAnswer struct {
-	Text       string   `json:"text"`
-	Creators   []string `json:"creators"`  // UUIDs of players who wrote this (or "house" / "truth")
-	Selectors  []string `json:"selectors"` // UUIDs of players who selected this
-	RealAnswer bool     `json:"realAnswer"`
-	HouseLie   bool     `json:"houseLie"`
-	Points     int      `json:"points"` // Points earned/lost per selector
+	Text           string   `json:"text"`
+	Creators       []string `json:"creators"`  // UUIDs of players who wrote this (or "house" / "truth")
+	Selectors      []string `json:"selectors"` // UUIDs of players who selected this
+	RealAnswer     bool     `json:"realAnswer"`
+	HouseLie       bool     `json:"houseLie"`
+	SelectorPoints int      `json:"selectorPoints"` // Points earned/lost per selector
+	CreatorPoints  int      `json:"creatorPoints"`  // Points earned per creator for this answer
 }
 
 // Game holds the complete state of a single game.
@@ -438,31 +439,38 @@ func (g *Game) computeReveal() {
 			continue
 		}
 		selectors := answerSelectors[text]
-		points := 0
-		if len(selectors) > 0 {
-			// Selecting another player's lie: 0 points for selector, creator gets bullshit points
-			points = 0
+		if len(selectors) == 0 {
+			continue
+		}
+		creatorPoints := 0
+		if len(creators) > 0 {
+			creatorPoints = ScoreForFoolingPlayer(g.RoundIndex) * len(selectors) / len(creators)
 		}
 		reveals = append(reveals, RevealAnswer{
-			Text:       text,
-			Creators:   creators,
-			Selectors:  selectors,
-			RealAnswer: false,
-			HouseLie:   false,
-			Points:     points,
+			Text:           text,
+			Creators:       creators,
+			Selectors:      selectors,
+			RealAnswer:     false,
+			HouseLie:       false,
+			SelectorPoints: 0,
+			CreatorPoints:  creatorPoints,
 		})
 	}
 
 	// House lies
 	for text := range houseLies {
 		selectors := answerSelectors[text]
+		if len(selectors) == 0 {
+			continue
+		}
 		reveals = append(reveals, RevealAnswer{
-			Text:       text,
-			Creators:   []string{"house"},
-			Selectors:  selectors,
-			RealAnswer: false,
-			HouseLie:   true,
-			Points:     ScoreForHouseLiePenalty(g.RoundIndex),
+			Text:           text,
+			Creators:       []string{"house"},
+			Selectors:      selectors,
+			RealAnswer:     false,
+			HouseLie:       true,
+			SelectorPoints: ScoreForHouseLiePenalty(g.RoundIndex),
+			CreatorPoints:  0,
 		})
 	}
 
@@ -474,12 +482,13 @@ func (g *Game) computeReveal() {
 	// Real answer (always last)
 	realSelectors := answerSelectors[realAnswer]
 	reveals = append(reveals, RevealAnswer{
-		Text:       realAnswer,
-		Creators:   []string{"truth"},
-		Selectors:  realSelectors,
-		RealAnswer: true,
-		HouseLie:   false,
-		Points:     ScoreForCorrectAnswer(g.RoundIndex),
+		Text:           realAnswer,
+		Creators:       []string{"truth"},
+		Selectors:      realSelectors,
+		RealAnswer:     true,
+		HouseLie:       false,
+		SelectorPoints: ScoreForCorrectAnswer(g.RoundIndex),
+		CreatorPoints:  0,
 	})
 
 	g.RevealAnswers = reveals

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useGame } from '../hooks/useGame';
+import { getAvatarForPlayerIndex } from '../lib/avatar';
 import './RevealTheTruth.css';
 
 export function RevealTheTruth() {
@@ -19,7 +20,7 @@ export function RevealTheTruth() {
 
     const nextTimer = setTimeout(() => {
       if (currentIdx < reveals.length - 1) {
-        setCurrentIdx(i => i + 1);
+        setCurrentIdx((i) => i + 1);
         setPhase('show');
       } else {
         // All revealed, advance
@@ -38,10 +39,38 @@ export function RevealTheTruth() {
   const current = reveals[currentIdx];
   const players = state.players;
 
-  const getPlayerName = (uuid: string) => {
+  const getPlayer = (uuid: string) => players.find((p) => p.uuid === uuid);
+
+  const getPlayerLabel = (uuid: string) => {
     if (uuid === 'house') return '🏠 House Lie';
     if (uuid === 'truth') return '✅ The Truth';
-    return players.find(p => p.uuid === uuid)?.nickname || uuid;
+    return getPlayer(uuid)?.nickname || uuid;
+  };
+
+  const renderPlayerChip = (uuid: string) => {
+    if (uuid === 'house' || uuid === 'truth') {
+      return (
+        <span key={uuid} className="reveal-person-chip system">
+          <span>{getPlayerLabel(uuid)}</span>
+        </span>
+      );
+    }
+
+    const player = getPlayer(uuid);
+    if (!player) {
+      return (
+        <span key={uuid} className="reveal-person-chip">
+          <span>{uuid}</span>
+        </span>
+      );
+    }
+
+    return (
+      <span key={uuid} className="reveal-person-chip">
+        <span className="reveal-person-avatar">{getAvatarForPlayerIndex(player.index)}</span>
+        <span>{player.nickname}</span>
+      </span>
+    );
   };
 
   return (
@@ -50,35 +79,41 @@ export function RevealTheTruth() {
         {currentIdx + 1} / {reveals.length}
       </div>
 
-      <div className={`reveal-card ${current.realAnswer ? 'real' : current.houseLie ? 'house' : 'player'}`}>
-        <h2 className="reveal-text">{current.text}</h2>
-
-        {current.selectors && current.selectors.length > 0 && (
-          <div className="reveal-selectors">
-            <span className="reveal-label">Selected by:</span>
-            <div className="selector-names">
-              {current.selectors.map(uuid => (
-                <span key={uuid} className="selector-name">{getPlayerName(uuid)}</span>
-              ))}
-            </div>
+      <div className="reveal-layout">
+        <div className="reveal-writers">
+          {!current.realAnswer && <span className="reveal-label">Written by</span>}
+          <div className="reveal-people-row">
+            {current.creators.map((uuid) => renderPlayerChip(uuid))}
           </div>
-        )}
+          {phase === 'reveal' && current.creatorPoints > 0 && (
+            <div className="reveal-points positive">+{current.creatorPoints} </div>
+          )}
+        </div>
 
-        {phase === 'reveal' && (
-          <div className="reveal-creator fade-in">
-            <span className="reveal-label">Written by:</span>
-            <div className="creator-names">
-              {current.creators.map(uuid => (
-                <span key={uuid} className="creator-name">{getPlayerName(uuid)}</span>
-              ))}
-            </div>
-            {current.points !== 0 && (
-              <div className={`reveal-points ${current.points > 0 ? 'positive' : 'negative'}`}>
-                {current.points > 0 ? '+' : ''}{current.points}
-              </div>
+        <div
+          className={`reveal-card ${current.realAnswer ? 'real' : current.houseLie ? 'house' : 'player'}`}
+        >
+          <h2 className="reveal-text">{current.text}</h2>
+        </div>
+
+        <div className="reveal-selectors">
+          <span className="reveal-label">Selected by</span>
+          <div className="reveal-people-row">
+            {current.selectors?.length > 0 ? (
+              current.selectors.map((uuid) => renderPlayerChip(uuid))
+            ) : (
+              <span className="reveal-empty">No one selected this</span>
             )}
           </div>
-        )}
+          {phase === 'reveal' && current.selectorPoints !== 0 && (
+            <div
+              className={`reveal-points ${current.selectorPoints > 0 ? 'positive' : 'negative'}`}
+            >
+              {current.selectorPoints > 0 ? '+' : ''}
+              {current.selectorPoints}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

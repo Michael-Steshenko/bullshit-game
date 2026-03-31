@@ -62,7 +62,8 @@ export interface RevealEntry {
   creators: string[];
   realAnswer: boolean;
   houseLie: boolean;
-  points: number;
+  selectorPoints: number;
+  creatorPoints: number;
 }
 
 export interface RevealData {

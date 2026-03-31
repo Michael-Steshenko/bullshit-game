@@ -320,12 +320,13 @@ func (h *Hub) broadcastStateAndData(room *Room) {
 		reveals := make([]RevealEntry, len(revealAnswers))
 		for i, r := range revealAnswers {
 			reveals[i] = RevealEntry{
-				Text:       r.Text,
-				Selectors:  r.Selectors,
-				Creators:   r.Creators,
-				RealAnswer: r.RealAnswer,
-				HouseLie:   r.HouseLie,
-				Points:     r.Points,
+				Text:           r.Text,
+				Selectors:      r.Selectors,
+				Creators:       r.Creators,
+				RealAnswer:     r.RealAnswer,
+				HouseLie:       r.HouseLie,
+				SelectorPoints: r.SelectorPoints,
+				CreatorPoints:  r.CreatorPoints,
 			}
 		}
 		room.Broadcast(NewOutgoing(MsgReveal, RevealPayload{Reveals: reveals}))
@@ -360,12 +361,13 @@ func (h *Hub) sendCurrentStateData(client *Client, room *Room) {
 		reveals := make([]RevealEntry, len(revealAnswers))
 		for i, r := range revealAnswers {
 			reveals[i] = RevealEntry{
-				Text:       r.Text,
-				Selectors:  r.Selectors,
-				Creators:   r.Creators,
-				RealAnswer: r.RealAnswer,
-				HouseLie:   r.HouseLie,
-				Points:     r.Points,
+				Text:           r.Text,
+				Selectors:      r.Selectors,
+				Creators:       r.Creators,
+				RealAnswer:     r.RealAnswer,
+				HouseLie:       r.HouseLie,
+				SelectorPoints: r.SelectorPoints,
+				CreatorPoints:  r.CreatorPoints,
 			}
 		}
 		client.Send(NewOutgoing(MsgReveal, RevealPayload{Reveals: reveals}))
