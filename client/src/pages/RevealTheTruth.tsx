@@ -38,11 +38,12 @@ export function RevealTheTruth() {
 
   const current = reveals[currentIdx];
   const players = state.players;
+  const hasWrittenBy = !current.realAnswer && !(current.houseLie && current.creators[0] === 'house');
 
   const getPlayer = (uuid: string) => players.find((p) => p.uuid === uuid);
 
   const getPlayerLabel = (uuid: string) => {
-    if (uuid === 'house') return '🏠 House Lie';
+    if (uuid === 'house') return '🏠 Home Grown Bullshit';
     if (uuid === 'truth') return '✅ The Truth';
     return getPlayer(uuid)?.nickname || uuid;
   };
@@ -81,7 +82,7 @@ export function RevealTheTruth() {
 
       <div className="reveal-layout">
         <div className="reveal-writers">
-          {!current.realAnswer && <span className="reveal-label">Written by</span>}
+          {hasWrittenBy && <span className="reveal-label">Written by</span>}
           <div className="reveal-people-row">
             {current.creators.map((uuid) => renderPlayerChip(uuid))}
           </div>
@@ -105,7 +106,7 @@ export function RevealTheTruth() {
               <span className="reveal-empty">No one selected this</span>
             )}
           </div>
-          {phase === 'reveal' && current.selectorPoints !== 0 && (
+          {phase === 'reveal' && current.selectors?.length > 0 && current.selectorPoints !== 0 && (
             <div
               className={`reveal-points ${current.selectorPoints > 0 ? 'positive' : 'negative'}`}
             >

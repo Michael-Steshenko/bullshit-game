@@ -4,17 +4,21 @@ import "encoding/json"
 
 // Incoming message types (client -> server)
 const (
-	MsgJoin         = "join"
-	MsgReconnect    = "reconnect"
-	MsgStartGame    = "start_game"
-	MsgSubmitAnswer = "submit_answer"
-	MsgSelectAnswer = "select_answer"
-	MsgTick         = "tick"
-	MsgRematch      = "rematch"
+	MsgCreateAndJoin = "create_and_join"
+	MsgValidatePIN   = "validate_pin"
+	MsgJoin          = "join"
+	MsgReconnect     = "reconnect"
+	MsgStartGame     = "start_game"
+	MsgSubmitAnswer  = "submit_answer"
+	MsgSelectAnswer  = "select_answer"
+	MsgTick          = "tick"
+	MsgRematch       = "rematch"
 )
 
 // Outgoing message types (server -> client)
 const (
+	MsgCreatedGame     = "created_game"
+	MsgPINValidated    = "pin_validated"
 	MsgGameState       = "game_state"
 	MsgRejoined        = "rejoined"
 	MsgPlayerJoined    = "player_joined"
@@ -33,12 +37,14 @@ const (
 
 // IncomingMessage is a generic incoming WebSocket message.
 type IncomingMessage struct {
-	Type         string `json:"type"`
-	PIN          string `json:"pin,omitempty"`
-	Nickname     string `json:"nickname,omitempty"`
-	UUID         string `json:"uuid,omitempty"`
-	Text         string `json:"text,omitempty"`
-	StateVersion int    `json:"stateVersion,omitempty"`
+	Type           string `json:"type"`
+	PIN            string `json:"pin,omitempty"`
+	Nickname       string `json:"nickname,omitempty"`
+	UUID           string `json:"uuid,omitempty"`
+	Lang           string `json:"lang,omitempty"`
+	Text           string `json:"text,omitempty"`
+	TotalQuestions int    `json:"totalQuestions,omitempty"`
+	StateVersion   int    `json:"stateVersion,omitempty"`
 }
 
 // OutgoingMessage is a generic outgoing WebSocket message.
@@ -128,6 +134,14 @@ type RevealEntry struct {
 	HouseLie       bool     `json:"houseLie"`
 	SelectorPoints int      `json:"selectorPoints"`
 	CreatorPoints  int      `json:"creatorPoints"`
+}
+
+type CreatedGamePayload struct {
+	PIN string `json:"pin"`
+}
+
+type PinValidatedPayload struct {
+	PIN string `json:"pin"`
 }
 
 type ScoresPayload struct {

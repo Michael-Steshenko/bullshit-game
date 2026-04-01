@@ -41,3 +41,10 @@
 .full-width {
   width: 100%;
 }
+
+.create-error {
+  margin-top: 0.75rem;
+  color: var(--danger);
+  text-align: center;
+  font-size: 0.9rem;
+}

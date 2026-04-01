@@ -13,6 +13,10 @@ export function ProgressBar({ duration, startTime, onExpired }: Props) {
   const firedRef = useRef(false);
 
   useEffect(() => {
+    firedRef.current = false;
+  }, [duration, startTime]);
+
+  useEffect(() => {
     if (seconds === 0 && !firedRef.current) {
       firedRef.current = true;
       onExpired();

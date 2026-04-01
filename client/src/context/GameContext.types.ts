@@ -22,6 +22,7 @@ export interface GameStore {
 
   // Game state
   pin: string;
+  validatedPin: string;
   gameState: GameState;
   stateVersion: number;
   stateTimestamp: number;
@@ -49,6 +50,8 @@ export interface GameStore {
 
 export type GameAction =
   | { type: 'SET_PIN'; pin: string }
+  | { type: 'CREATED_GAME'; data: { pin: string } }
+  | { type: 'PIN_VALIDATED'; data: { pin: string } }
   | { type: 'GAME_STATE'; data: GameStateData }
   | {
       type: 'REJOINED';
@@ -78,6 +81,7 @@ export const initialState: GameStore = {
   myScore: 0,
   myIndex: -1,
   pin: '',
+  validatedPin: '',
   gameState: GameState.GameStaging,
   stateVersion: 0,
   stateTimestamp: 0,
@@ -99,6 +103,12 @@ export function gameReducer(state: GameStore, action: GameAction): GameStore {
   switch (action.type) {
     case 'SET_PIN':
       return { ...state, pin: action.pin };
+
+    case 'CREATED_GAME':
+      return { ...state, pin: action.data.pin, validatedPin: action.data.pin, error: null };
+
+    case 'PIN_VALIDATED':
+      return { ...state, pin: action.data.pin, validatedPin: action.data.pin, error: null };
 
     case 'CONNECTED':
       return { ...state, connected: action.connected };
@@ -194,7 +204,11 @@ export function gameReducer(state: GameStore, action: GameAction): GameStore {
       };
 
     case 'ERROR':
-      return { ...state, error: action.data };
+      return {
+        ...state,
+        validatedPin: action.data.code === 'GAME_NOT_EXIST' ? '' : state.validatedPin,
+        error: action.data,
+      };
 
     case 'RESET':
       return initialState;

@@ -434,3 +434,69 @@ func TestRevealIncludesCreatorPointsWhenBullshitting(t *testing.T) {
 		t.Fatalf("selector points = %d, want 0", hostLie.SelectorPoints)
 	}
 }
+
+func TestAnswerPreservesCapitalizationVariants(t *testing.T) {
+	questions := makeTestQuestions(1)
+	g := NewGame("ABCD", "host", "Host", "en", 1, questions)
+	g.AddPlayer("p1", "Player1")
+	g.AddPlayer("p2", "Player2")
+
+	g.StartGame("host")
+	g.Tick(g.StateVersion) // -> ShowQuestion
+
+	sv := g.StateVersion
+	if err := g.SubmitAnswer("host", "apple", sv); err != "" {
+		t.Fatalf("submit host: %s", err)
+	}
+	if err := g.SubmitAnswer("p1", "Apple", sv); err != "" {
+		t.Fatalf("submit p1: %s", err)
+	}
+	if err := g.SubmitAnswer("p2", "apPle", sv); err != "" {
+		t.Fatalf("submit p2: %s", err)
+	}
+
+	g.Tick(g.StateVersion) // -> ShowAnswers
+
+	answersForHost := g.GetAnswersForPlayer("host")
+	var hasApple, hasApPle bool
+	for _, a := range answersForHost {
+		if a == "Apple" {
+			hasApple = true
+		}
+		if a == "apPle" {
+			hasApPle = true
+		}
+	}
+
+	if !hasApple || !hasApPle {
+		t.Fatalf("expected capitalization variants in answers: %+v", answersForHost)
+	}
+
+	sv = g.StateVersion
+	if err := g.SelectAnswer("host", "Apple", sv); err != "" {
+		t.Fatalf("select host: %s", err)
+	}
+	if err := g.SelectAnswer("p1", "apple", sv); err != "" {
+		t.Fatalf("select p1: %s", err)
+	}
+	if err := g.SelectAnswer("p2", "Apple", sv); err != "" {
+		t.Fatalf("select p2: %s", err)
+	}
+
+	g.Tick(g.StateVersion) // -> RevealTheTruth
+
+	reveals := g.GetRevealAnswers()
+	var hasLower, hasUpper bool
+	for _, r := range reveals {
+		if r.Text == "apple" {
+			hasLower = true
+		}
+		if r.Text == "Apple" {
+			hasUpper = true
+		}
+	}
+
+	if !hasLower || !hasUpper {
+		t.Fatalf("expected both capitalization variants in reveal: %+v", reveals)
+	}
+}

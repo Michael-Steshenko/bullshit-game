@@ -16,10 +16,10 @@
 }
 
 .reveal-card {
-  padding: 2rem;
+  padding: 1rem 1.5rem;
   border-radius: 16px;
   width: 100%;
-  min-height: 180px;
+  min-height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -54,8 +54,12 @@
 }
 
 .reveal-text {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   margin: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .reveal-label {

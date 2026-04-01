@@ -52,33 +52,6 @@ func (h *Hub) Run() {
 	}
 }
 
-// CreateGame creates a new game room and returns the PIN and host UUID.
-func (h *Hub) CreateGame(lang string, totalQuestions int) (string, string, error) {
-	pin := h.pinGen.Next()
-	hostUUID := uuid.New().String()
-
-	questions, err := h.questionStore.GetRandomQuestions(context.Background(), lang, totalQuestions)
-	if err != nil {
-		return "", "", err
-	}
-
-	g := game.NewGame(pin, hostUUID, "", lang, len(questions), questions)
-
-	// Remove host as player since they'll join via WebSocket with a nickname
-	// Actually, the host joins via WebSocket like everyone else. Reset players.
-	g.Players = make(map[string]*game.Player)
-	g.PlayerOrder = nil
-	g.HostID = ""
-
-	room := NewRoom(g)
-
-	h.mu.Lock()
-	h.rooms[pin] = room
-	h.mu.Unlock()
-
-	return pin, hostUUID, nil
-}
-
 // GetRoom returns the room for a given PIN.
 func (h *Hub) GetRoom(pin string) *Room {
 	h.mu.RLock()
@@ -89,6 +62,10 @@ func (h *Hub) GetRoom(pin string) *Room {
 // processMessage handles an incoming WebSocket message.
 func (h *Hub) processMessage(client *Client, msg *IncomingMessage) {
 	switch msg.Type {
+	case MsgCreateAndJoin:
+		h.handleCreateAndJoin(client, msg)
+	case MsgValidatePIN:
+		h.handleValidatePIN(client, msg)
 	case MsgJoin:
 		h.handleJoin(client, msg)
 	case MsgReconnect:
@@ -108,11 +85,83 @@ func (h *Hub) processMessage(client *Client, msg *IncomingMessage) {
 	}
 }
 
+func (h *Hub) handleCreateAndJoin(client *Client, msg *IncomingMessage) {
+	nickname := strings.TrimSpace(msg.Nickname)
+	if nickname == "" {
+		client.Send(NewOutgoing(MsgError, ErrorPayload{Code: "EMPTY_NICKNAME", Message: "Nickname required"}))
+		return
+	}
+
+	lang := strings.TrimSpace(msg.Lang)
+	if lang == "" {
+		lang = "en"
+	}
+	totalQuestions := msg.TotalQuestions
+	if totalQuestions <= 0 {
+		totalQuestions = 7
+	}
+
+	pin := h.pinGen.Next()
+	questions, err := h.questionStore.GetRandomQuestions(context.Background(), lang, totalQuestions)
+	if err != nil {
+		client.Send(NewOutgoing(MsgError, ErrorPayload{Code: "CREATE_GAME_FAILED", Message: "Failed to create game"}))
+		return
+	}
+
+	playerUUID := uuid.New().String()
+	g := game.NewGame(pin, playerUUID, nickname, lang, len(questions), questions)
+	room := NewRoom(g)
+
+	h.mu.Lock()
+	h.rooms[pin] = room
+	h.mu.Unlock()
+
+	client.UUID = playerUUID
+	client.PIN = pin
+	room.AddClient(playerUUID, client)
+
+	player := room.Game.GetPlayer(playerUUID)
+	if player == nil {
+		client.Send(NewOutgoing(MsgError, ErrorPayload{Code: "PLAYER_NOT_FOUND", Message: "Player not found"}))
+		return
+	}
+
+	client.Send(NewOutgoing(MsgCreatedGame, CreatedGamePayload{PIN: pin}))
+	client.Send(NewOutgoing(MsgRejoined, RejoinedPayload{
+		UUID:     playerUUID,
+		Nickname: player.Nickname,
+		Score:    player.Score,
+		Index:    player.Index,
+	}))
+	client.Send(NewOutgoing(MsgPlayerList, h.buildPlayerList(room)))
+	client.Send(h.buildGameStateMsg(room.Game))
+}
+
+func (h *Hub) handleValidatePIN(client *Client, msg *IncomingMessage) {
+	pin := strings.ToUpper(msg.PIN)
+	room := h.GetRoom(pin)
+	if room == nil {
+		client.Send(NewOutgoing(MsgError, ErrorPayload{Code: "GAME_NOT_EXIST", Message: "Wrong PIN"}))
+		return
+	}
+
+	if room.Game.GetStateSnapshot().State != game.GameStaging {
+		client.Send(NewOutgoing(MsgError, ErrorPayload{Code: "GAME_NOT_EXIST", Message: "Wrong PIN"}))
+		return
+	}
+
+	client.Send(NewOutgoing(MsgPINValidated, PinValidatedPayload{PIN: pin}))
+}
+
 func (h *Hub) handleJoin(client *Client, msg *IncomingMessage) {
 	pin := strings.ToUpper(msg.PIN)
 	room := h.GetRoom(pin)
 	if room == nil {
-		client.Send(NewOutgoing(MsgError, ErrorPayload{Code: "GAME_NOT_EXIST", Message: "Game not found"}))
+		client.Send(NewOutgoing(MsgError, ErrorPayload{Code: "GAME_NOT_EXIST", Message: "Wrong PIN"}))
+		return
+	}
+	if room.Game.GetStateSnapshot().State != game.GameStaging {
+		client.Send(NewOutgoing(MsgError, ErrorPayload{Code: "GAME_NOT_EXIST", Message: "Wrong PIN"}))
 		return
 	}
 
@@ -161,7 +210,7 @@ func (h *Hub) handleReconnect(client *Client, msg *IncomingMessage) {
 	pin := strings.ToUpper(msg.PIN)
 	room := h.GetRoom(pin)
 	if room == nil {
-		client.Send(NewOutgoing(MsgError, ErrorPayload{Code: "RECONNECT_FAILED", Message: "Game not found"}))
+		client.Send(NewOutgoing(MsgError, ErrorPayload{Code: "RECONNECT_FAILED", Message: "Wrong PIN"}))
 		return
 	}
 

@@ -2,8 +2,10 @@ import { useReducer, useCallback, useEffect, type ReactNode } from 'react';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useSession } from '../hooks/useSession';
 import type {
+  CreatedGameData,
   GameStateData,
   PlayerData,
+  PinValidatedData,
   QuestionData,
   AnswersData,
   RevealData,
@@ -19,6 +21,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
     switch (msg.type) {
       case 'game_state':
         dispatch({ type: 'GAME_STATE', data: msg.data as GameStateData });
+        break;
+      case 'created_game':
+        dispatch({ type: 'CREATED_GAME', data: msg.data as CreatedGameData });
+        break;
+      case 'pin_validated':
+        dispatch({ type: 'PIN_VALIDATED', data: msg.data as PinValidatedData });
         break;
       case 'rejoined':
         dispatch({

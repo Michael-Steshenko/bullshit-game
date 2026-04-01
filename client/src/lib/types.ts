@@ -38,6 +38,14 @@ export interface RejoinedData {
   index: number;
 }
 
+export interface CreatedGameData {
+  pin: string;
+}
+
+export interface PinValidatedData {
+  pin: string;
+}
+
 export interface QuestionData {
   text: string;
   questionNumber: number;

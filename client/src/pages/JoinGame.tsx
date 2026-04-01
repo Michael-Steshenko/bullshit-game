@@ -1,17 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useGame } from '../hooks/useGame';
 import { GameState } from '../lib/types';
 import './JoinGame.css';
 
 export function JoinGame() {
-  const { state, send, dispatch } = useGame();
+  const { state, send } = useGame();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const [pin, setPin] = useState(searchParams.get('pin') || '');
+  const [pin, setPin] = useState(searchParams.get('pin')?.toUpperCase() || '');
   const [nickname, setNickname] = useState('');
-  const [step, setStep] = useState<'pin' | 'nickname'>(searchParams.get('pin') ? 'nickname' : 'pin');
+  const validatedPin = state.validatedPin;
+  const normalizedPin = pin.toUpperCase();
+  const pinValidated = normalizedPin.length === 4 && validatedPin === normalizedPin;
+  const pinError = useMemo(() => {
+    if (state.error?.code === 'GAME_NOT_EXIST') return state.error.message;
+    return '';
+  }, [state.error]);
 
   // Navigate to game when joined
   useEffect(() => {
@@ -20,20 +26,25 @@ export function JoinGame() {
     }
   }, [state.myUUID, state.gameState, navigate]);
 
-  const handlePinSubmit = (e: React.FormEvent) => {
+  const handleValidatePin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin.length === 4) {
-      dispatch({ type: 'SET_PIN', pin: pin.toUpperCase() });
-      setStep('nickname');
-    }
+    if (pin.length !== 4 || !state.connected) return;
+    send('validate_pin', { pin: normalizedPin });
+  };
+
+  const handlePinChange = (value: string) => {
+    const next = value.toUpperCase().slice(0, 4);
+    setPin(next);
   };
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nickname.trim()) return;
-    const upperPin = pin.toUpperCase();
-    dispatch({ type: 'SET_PIN', pin: upperPin });
-    send('join', { pin: upperPin, nickname: nickname.trim() });
+    if (!nickname.trim() || !state.connected) return;
+    if (!pinValidated) {
+      send('validate_pin', { pin: normalizedPin });
+      return;
+    }
+    send('join', { pin: normalizedPin, nickname: nickname.trim() });
   };
 
   return (
@@ -41,23 +52,24 @@ export function JoinGame() {
       <div className="card">
         <h2 className="text-center mb-3">Join Game</h2>
 
-        {step === 'pin' ? (
-          <form onSubmit={handlePinSubmit}>
+        {!pinValidated ? (
+          <form onSubmit={handleValidatePin}>
             <div className="form-group mb-3">
               <label>Game PIN</label>
               <input
                 type="text"
                 value={pin}
-                onChange={e => setPin(e.target.value.toUpperCase().slice(0, 4))}
+                onChange={e => handlePinChange(e.target.value)}
                 placeholder="ABCD"
                 maxLength={4}
                 className="pin-input"
                 autoFocus
               />
             </div>
-            <button className="btn-primary full-width" disabled={pin.length !== 4}>
+            <button className="btn-primary full-width" disabled={pin.length !== 4 || !state.connected}>
               Next
             </button>
+            {pinError && <p className="error-text">{pinError}</p>}
           </form>
         ) : (
           <form onSubmit={handleJoin}>
@@ -76,9 +88,14 @@ export function JoinGame() {
             <button className="btn-primary full-width" disabled={!nickname.trim() || !state.connected}>
               {state.connected ? 'Join' : 'Connecting...'}
             </button>
-            {state.error && (
-              <p className="error-text">{state.error.message}</p>
-            )}
+            {state.error && <p className="error-text">{state.error.message}</p>}
+            <button
+              type="button"
+              className="btn-secondary full-width back-btn"
+              onClick={() => setPin('')}
+            >
+              Change PIN
+            </button>
           </form>
         )}
       </div>

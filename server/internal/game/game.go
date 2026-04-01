@@ -25,17 +25,20 @@ type Player struct {
 type Answer struct {
 	PlayerUUID string
 	Text       string
+	Normalized string
 }
 
 // Selection represents a player's vote.
 type Selection struct {
 	PlayerUUID string
 	AnswerText string
+	Normalized string
 }
 
 // RevealAnswer represents one answer in the reveal sequence.
 type RevealAnswer struct {
 	Text           string   `json:"text"`
+	Normalized     string   `json:"normalized"`
 	Creators       []string `json:"creators"`  // UUIDs of players who wrote this (or "house" / "truth")
 	Selectors      []string `json:"selectors"` // UUIDs of players who selected this
 	RealAnswer     bool     `json:"realAnswer"`
@@ -187,11 +190,12 @@ func (g *Game) SubmitAnswer(uuid, text string, stateVersion int) string {
 		return "PLAYER_NOT_FOUND"
 	}
 
-	normalized := strings.ToLower(strings.TrimSpace(text))
-	if normalized == "" {
+	trimmed := strings.TrimSpace(text)
+	normalized := strings.ToLower(trimmed)
+	if trimmed == "" {
 		return "EMPTY_ANSWER"
 	}
-	if len(normalized) > MaxAnswerLen {
+	if len(trimmed) > MaxAnswerLen {
 		return "ANSWER_TOO_LONG"
 	}
 	if g.CurrentQuestion != nil && strings.ToLower(strings.TrimSpace(g.CurrentQuestion.RealAnswer)) == normalized {
@@ -200,7 +204,8 @@ func (g *Game) SubmitAnswer(uuid, text string, stateVersion int) string {
 
 	g.Answers[uuid] = &Answer{
 		PlayerUUID: uuid,
-		Text:       normalized,
+		Text:       trimmed,
+		Normalized: normalized,
 	}
 	return ""
 }
@@ -224,9 +229,16 @@ func (g *Game) SelectAnswer(uuid, text string, stateVersion int) string {
 		return "PLAYER_NOT_FOUND"
 	}
 
+	trimmed := strings.TrimSpace(text)
+	normalized := strings.ToLower(trimmed)
+	if trimmed == "" {
+		return "INVALID_SELECTION"
+	}
+
 	g.Selections[uuid] = &Selection{
 		PlayerUUID: uuid,
-		AnswerText: strings.ToLower(strings.TrimSpace(text)),
+		AnswerText: trimmed,
+		Normalized: normalized,
 	}
 	return ""
 }
@@ -373,7 +385,7 @@ func (g *Game) buildFullAnswerSet() []string {
 	// Add house lies
 	if g.CurrentQuestion != nil && houseLiesNeeded > 0 {
 		for i := 0; i < houseLiesNeeded && i < len(g.CurrentQuestion.FakeAnswers); i++ {
-			lie := strings.ToLower(strings.TrimSpace(g.CurrentQuestion.FakeAnswers[i]))
+			lie := strings.TrimSpace(g.CurrentQuestion.FakeAnswers[i])
 			if !uniqueAnswers[lie] {
 				answers = append(answers, lie)
 				uniqueAnswers[lie] = true
@@ -383,7 +395,7 @@ func (g *Game) buildFullAnswerSet() []string {
 
 	// Add real answer
 	if g.CurrentQuestion != nil {
-		realAnswer := strings.ToLower(strings.TrimSpace(g.CurrentQuestion.RealAnswer))
+		realAnswer := strings.TrimSpace(g.CurrentQuestion.RealAnswer)
 		if !uniqueAnswers[realAnswer] {
 			answers = append(answers, realAnswer)
 		}
@@ -399,9 +411,10 @@ func (g *Game) computeReveal() {
 		return
 	}
 
-	realAnswer := strings.ToLower(strings.TrimSpace(g.CurrentQuestion.RealAnswer))
+	realAnswer := strings.TrimSpace(g.CurrentQuestion.RealAnswer)
+	realAnswerNormalized := strings.ToLower(realAnswer)
 
-	// Collect unique player answers and their creators
+	// Collect unique player answers and their creators by exact answer text
 	playerAnswerCreators := make(map[string][]string) // answer text -> []creator UUIDs
 	for uuid, a := range g.Answers {
 		playerAnswerCreators[a.Text] = append(playerAnswerCreators[a.Text], uuid)
@@ -410,35 +423,39 @@ func (g *Game) computeReveal() {
 	// Determine house lies needed
 	uniquePlayerAnswers := make(map[string]bool)
 	for _, a := range g.Answers {
-		uniquePlayerAnswers[a.Text] = true
+		uniquePlayerAnswers[a.Normalized] = true
 	}
 	houseLiesNeeded := len(g.Players) - len(uniquePlayerAnswers)
 
-	houseLies := make(map[string]bool)
+	houseLies := make(map[string]string) // normalized -> original lie text
 	if houseLiesNeeded > 0 {
 		for i := 0; i < houseLiesNeeded && i < len(g.CurrentQuestion.FakeAnswers); i++ {
-			lie := strings.ToLower(strings.TrimSpace(g.CurrentQuestion.FakeAnswers[i]))
-			if !uniquePlayerAnswers[lie] && lie != realAnswer {
-				houseLies[lie] = true
+			lie := strings.TrimSpace(g.CurrentQuestion.FakeAnswers[i])
+			normalizedLie := strings.ToLower(lie)
+			if !uniquePlayerAnswers[normalizedLie] && normalizedLie != realAnswerNormalized {
+				houseLies[normalizedLie] = lie
 			}
 		}
 	}
 
 	// Collect selectors per answer
-	answerSelectors := make(map[string][]string) // answer text -> []selector UUIDs
+	answerSelectorsExact := make(map[string][]string)      // exact answer text -> []selector UUIDs
+	answerSelectorsNormalized := make(map[string][]string) // normalized answer text -> []selector UUIDs
 	for uuid, sel := range g.Selections {
-		answerSelectors[sel.AnswerText] = append(answerSelectors[sel.AnswerText], uuid)
+		answerSelectorsExact[sel.AnswerText] = append(answerSelectorsExact[sel.AnswerText], uuid)
+		answerSelectorsNormalized[sel.Normalized] = append(answerSelectorsNormalized[sel.Normalized], uuid)
 	}
 
 	// Build reveal entries
 	var reveals []RevealAnswer
 
-	// Player lies
+	// Player lies (keep distinct capitalization variants as separate reveal cards)
 	for text, creators := range playerAnswerCreators {
-		if text == realAnswer {
+		normalizedText := strings.ToLower(strings.TrimSpace(text))
+		if normalizedText == realAnswerNormalized {
 			continue
 		}
-		selectors := answerSelectors[text]
+		selectors := answerSelectorsExact[text]
 		if len(selectors) == 0 {
 			continue
 		}
@@ -448,6 +465,7 @@ func (g *Game) computeReveal() {
 		}
 		reveals = append(reveals, RevealAnswer{
 			Text:           text,
+			Normalized:     normalizedText,
 			Creators:       creators,
 			Selectors:      selectors,
 			RealAnswer:     false,
@@ -458,13 +476,14 @@ func (g *Game) computeReveal() {
 	}
 
 	// House lies
-	for text := range houseLies {
-		selectors := answerSelectors[text]
+	for normalized, text := range houseLies {
+		selectors := answerSelectorsNormalized[normalized]
 		if len(selectors) == 0 {
 			continue
 		}
 		reveals = append(reveals, RevealAnswer{
 			Text:           text,
+			Normalized:     normalized,
 			Creators:       []string{"house"},
 			Selectors:      selectors,
 			RealAnswer:     false,
@@ -480,9 +499,13 @@ func (g *Game) computeReveal() {
 	})
 
 	// Real answer (always last)
-	realSelectors := answerSelectors[realAnswer]
+	realSelectors := answerSelectorsNormalized[realAnswerNormalized]
+	if realSelectors == nil {
+		realSelectors = []string{}
+	}
 	reveals = append(reveals, RevealAnswer{
 		Text:           realAnswer,
+		Normalized:     realAnswerNormalized,
 		Creators:       []string{"truth"},
 		Selectors:      realSelectors,
 		RealAnswer:     true,
@@ -505,7 +528,7 @@ func (g *Game) computeScores() {
 	// Collect unique player answers for house lie detection
 	uniquePlayerAnswers := make(map[string]bool)
 	for _, a := range g.Answers {
-		uniquePlayerAnswers[a.Text] = true
+		uniquePlayerAnswers[a.Normalized] = true
 	}
 
 	houseLiesNeeded := len(g.Players) - len(uniquePlayerAnswers)
@@ -532,7 +555,7 @@ func (g *Game) computeScores() {
 			continue
 		}
 
-		selectedText := sel.AnswerText
+		selectedText := sel.Normalized
 
 		if selectedText == realAnswer {
 			// Selected the truth

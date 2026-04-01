@@ -16,7 +16,6 @@ func NewRouter(h *hub.Hub, _ *sql.DB) http.Handler {
 
 	// API routes
 	mux.HandleFunc("/api/health", healthHandler)
-	mux.HandleFunc("/api/create-game", createGameHandler(h))
 
 	// WebSocket
 	mux.HandleFunc("/ws", wsHandler(h))
@@ -39,46 +38,6 @@ func NewRouter(h *hub.Hub, _ *sql.DB) http.Handler {
 func healthHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
-}
-
-type CreateGameRequest struct {
-	Lang           string `json:"lang"`
-	TotalQuestions int    `json:"totalQuestions"`
-}
-
-type CreateGameResponse struct {
-	PIN string `json:"pin"`
-}
-
-func createGameHandler(h *hub.Hub) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
-		var req CreateGameRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, "invalid request", http.StatusBadRequest)
-			return
-		}
-
-		if req.Lang == "" {
-			req.Lang = "en"
-		}
-		if req.TotalQuestions <= 0 {
-			req.TotalQuestions = 7
-		}
-
-		pin, _, err := h.CreateGame(req.Lang, req.TotalQuestions)
-		if err != nil {
-			http.Error(w, "failed to create game", http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(CreateGameResponse{PIN: pin})
-	}
 }
 
 func corsMiddleware(next http.Handler) http.Handler {
