@@ -38,7 +38,8 @@ export function RevealTheTruth() {
 
   const current = reveals[currentIdx];
   const players = state.players;
-  const hasWrittenBy = !current.realAnswer && !(current.houseLie && current.creators[0] === 'house');
+  const hasWrittenBy =
+    !current.realAnswer && !(current.houseLie && current.creators[0] === 'house');
 
   const getPlayer = (uuid: string) => players.find((p) => p.uuid === uuid);
 

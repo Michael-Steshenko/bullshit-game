@@ -59,7 +59,7 @@ export function CreateGame() {
           <div className="form-group mb-3">
             <label>Questions</label>
             <div className="question-options">
-              {[5, 7, 10].map(n => (
+              {[1, 5, 7, 10].map(n => (
                 <button
                   key={n}
                   type="button"

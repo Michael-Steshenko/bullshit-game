@@ -33,6 +33,13 @@
   flex: 1;
   text-align: left;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.player-avatar-small {
+  margin-right: 0.5rem;
+  font-size: 1.2rem;
 }
 
 .score-value {

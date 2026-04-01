@@ -1,5 +1,6 @@
 import { useGame } from '../hooks/useGame';
 import { ProgressBar } from '../components/ProgressBar';
+import { getAvatarForPlayerIndex } from '../lib/avatar';
 import './ScoreBoard.css';
 
 export function ScoreBoard() {
@@ -25,7 +26,10 @@ export function ScoreBoard() {
         {sorted.map((p, i) => (
           <div key={p.uuid} className={`score-row ${p.uuid === state.myUUID ? 'me' : ''}`}>
             <span className="score-rank">#{i + 1}</span>
-            <span className="score-name">{p.nickname}</span>
+            <span className="score-name">
+              <span className="player-avatar-small">{getAvatarForPlayerIndex(p.index)}</span>
+              {p.nickname}
+            </span>
             <span className="score-value">{p.score.toLocaleString()}</span>
           </div>
         ))}
