@@ -8,6 +8,7 @@ import {
   type ErrorData,
   type RevealEntry,
   GameState,
+  prettyErrorMessage,
 } from '../lib/types';
 
 export interface GameStore {
@@ -71,6 +72,7 @@ export type GameAction =
   | { type: 'FINAL_SCORES'; data: { players: PlayerData[] } }
   | { type: 'REMATCH' }
   | { type: 'ERROR'; data: ErrorData }
+  | { type: 'CLEAR_ERROR' }
   | { type: 'CONNECTED'; connected: boolean }
   | { type: 'RESET' };
 
@@ -128,6 +130,7 @@ export function gameReducer(state: GameStore, action: GameAction): GameStore {
         questionIndex: d.questionIndex,
         totalQuestions: d.totalQuestions,
         duration: d.duration,
+        error: null,
       };
     }
 
@@ -207,8 +210,14 @@ export function gameReducer(state: GameStore, action: GameAction): GameStore {
       return {
         ...state,
         validatedPin: action.data.code === 'GAME_NOT_EXIST' ? '' : state.validatedPin,
-        error: action.data,
+        error: {
+          ...action.data,
+          message: prettyErrorMessage(action.data),
+        },
       };
+
+    case 'CLEAR_ERROR':
+      return { ...state, error: null };
 
     case 'RESET':
       return initialState;

@@ -91,7 +91,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const { connected, send } = useWebSocket(handleMessage);
+  const { connected, send: wsSend } = useWebSocket(handleMessage);
+
+  const send = useCallback(
+    (type: string, payload?: Record<string, unknown>) => {
+      dispatch({ type: 'CLEAR_ERROR' });
+      wsSend(type, payload);
+    },
+    [wsSend]
+  );
 
   // Attempt reconnect on mount
   useEffect(() => {

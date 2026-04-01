@@ -1,41 +1,34 @@
-import { useState, useRef } from "react";
-import { useGame } from "../hooks/useGame";
-import { ProgressBar } from "../components/ProgressBar";
-import "./ShowQuestion.css";
+import { useState, useRef } from 'react';
+import { useGame } from '../hooks/useGame';
+import { ProgressBar } from '../components/ProgressBar';
+import './ShowQuestion.css';
 
 export function ShowQuestion() {
   const { state, send } = useGame();
-  const [answer, setAnswer] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState("");
+  const [answer, setAnswer] = useState('');
+  const [submitted, setSubmitted] = useState(state.submittedPlayers.includes(state.myUUID));
   const timerExpiredRef = useRef(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!answer.trim()) return;
-    send("submit_answer", {
+    send('submit_answer', {
       pin: state.pin,
       text: answer.trim(),
       stateVersion: state.stateVersion,
     });
     setSubmitted(true);
-    setError("");
   };
 
   const handleExpired = () => {
     if (!timerExpiredRef.current) {
       timerExpiredRef.current = true;
-      send("tick", { pin: state.pin, stateVersion: state.stateVersion });
+      send('tick', { pin: state.pin, stateVersion: state.stateVersion });
     }
   };
 
-  // Listen for error to un-submit
-  if (state.error && submitted) {
-    setSubmitted(false);
-    setError(state.error.message);
-  }
-
-  const questionText = state.question?.text.replace("$blank$", "______") || "";
+  const questionText = state.question?.text.replace('$blank$', '______') || '';
+  const showSubmitted = submitted && !state.error;
 
   return (
     <div className="show-question fade-in">
@@ -46,18 +39,16 @@ export function ShowQuestion() {
       />
 
       <div className="question-number mb-2">
-        Question {state.question?.questionNumber} of{" "}
-        {state.question?.totalQuestions}
+        Question {state.question?.questionNumber} of {state.question?.totalQuestions}
       </div>
 
       <h2 className="question-text mb-3">{questionText}</h2>
 
-      {submitted ? (
+      {showSubmitted ? (
         <div className="submitted-msg">
           <p>✅ Answer submitted!</p>
           <p className="submitted-count">
-            {state.submittedPlayers.length} / {state.players.length} players
-            answered
+            {state.submittedPlayers.length} / {state.players.length} players answered
           </p>
         </div>
       ) : (
@@ -71,13 +62,10 @@ export function ShowQuestion() {
             autoFocus
             className="answer-input"
           />
-          <button
-            className="btn-primary full-width mt-1"
-            disabled={!answer.trim()}
-          >
+          <button className="btn-primary full-width mt-1" disabled={!answer.trim()}>
             Submit
           </button>
-          {error && <p className="error-text">{error}</p>}
+          {state.error && <p className="error-text">{state.error.message}</p>}
         </form>
       )}
     </div>

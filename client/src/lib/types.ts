@@ -87,6 +87,24 @@ export interface ErrorData {
   message: string;
 }
 
+const ErrorMessages: Record<string, string> = {
+  'CORRECT_ANSWER': 'You cannot write the correct answer.',
+  'INVALID_STATE': 'The game is in an invalid state.',
+  'PLAYER_NOT_FOUND': 'Player not found.',
+  'EMPTY_ANSWER': 'Answer cannot be empty.',
+  'ANSWER_TOO_LONG': 'Answer is too long (max 40 characters).',
+  'GAME_NOT_EXIST': 'Wrong PIN.',
+  'EMPTY_NICKNAME': 'Nickname required.',
+  'CREATE_GAME_FAILED': 'Failed to create game.',
+  'RECONNECT_FAILED': 'Failed to reconnect.',
+  'GAME_IS_FULL': 'The game is full.',
+  'GAME_STARTED': 'The game has already started.',
+};
+
+export function prettyErrorMessage(error: ErrorData): string {
+  return ErrorMessages[error.code] || error.message || 'An unknown error occurred.';
+}
+
 export interface TimeSyncData {
   serverTime: number;
 }
