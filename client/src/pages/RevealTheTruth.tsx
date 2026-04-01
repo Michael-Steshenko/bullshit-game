@@ -97,24 +97,22 @@ export function RevealTheTruth() {
           <h2 className="reveal-text">{current.text}</h2>
         </div>
 
-        <div className="reveal-selectors">
-          <span className="reveal-label">Selected by</span>
-          <div className="reveal-people-row">
-            {current.selectors?.length > 0 ? (
-              current.selectors.map((uuid) => renderPlayerChip(uuid))
-            ) : (
-              <span className="reveal-empty">No one selected this</span>
+        {current.selectors?.length > 0 && (
+          <div className="reveal-selectors">
+            <span className="reveal-label">Selected by</span>
+            <div className="reveal-people-row">
+              {current.selectors.map((uuid) => renderPlayerChip(uuid))}
+            </div>
+            {phase === 'reveal' && current.selectorPoints !== 0 && (
+              <div
+                className={`reveal-points ${current.selectorPoints > 0 ? 'positive' : 'negative'}`}
+              >
+                {current.selectorPoints > 0 ? '+' : ''}
+                {current.selectorPoints}
+              </div>
             )}
           </div>
-          {phase === 'reveal' && current.selectors?.length > 0 && current.selectorPoints !== 0 && (
-            <div
-              className={`reveal-points ${current.selectorPoints > 0 ? 'positive' : 'negative'}`}
-            >
-              {current.selectorPoints > 0 ? '+' : ''}
-              {current.selectorPoints}
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );
